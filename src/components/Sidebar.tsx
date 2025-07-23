@@ -9,8 +9,8 @@ const Sidebar = () => {
   const navItems = [
     { path: '/admin', icon: <FaTachometerAlt />, label: 'Dashboard' },
     { path: '/admin/relatorios', icon: <FaChartBar />, label: 'Relatório BI' },
-    { path: '/guarita', icon: <FaTruck />, label: 'Guarita: Entrada' },
-    { path: '/guarita-saida', icon: <FaSignOutAlt />, label: 'Guarita: Saída' },
+    { path: '/triagem-entrada', icon: <FaTruck />, label: 'Triagem: Entrada' },
+    { path: '/triagem-saida', icon: <FaSignOutAlt />, label: 'Triagem: Saída' },
     { path: '/motoristas', icon: <FaUsers />, label: 'Motoristas' },
     { path: '/veiculos', icon: <FaIdCard />, label: 'Veículos' },
   ];
