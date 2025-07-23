@@ -1,0 +1,37 @@
+
+import { Link, useLocation } from 'react-router-dom';
+import { FaTachometerAlt, FaTruck, FaSignOutAlt, FaUsers, FaIdCard, FaChartBar } from 'react-icons/fa';
+import './Sidebar.css';
+
+const Sidebar = () => {
+  const location = useLocation();
+
+  const navItems = [
+    { path: '/admin', icon: <FaTachometerAlt />, label: 'Dashboard' },
+    { path: '/admin/relatorios', icon: <FaChartBar />, label: 'Relatório BI' },
+    { path: '/guarita', icon: <FaTruck />, label: 'Guarita: Entrada' },
+    { path: '/guarita-saida', icon: <FaSignOutAlt />, label: 'Guarita: Saída' },
+    { path: '/motoristas', icon: <FaUsers />, label: 'Motoristas' },
+    { path: '/veiculos', icon: <FaIdCard />, label: 'Veículos' },
+  ];
+
+  return (
+    <nav className="sidebar">
+      <div className="sidebar-header">
+        <h3>SuapeLog</h3>
+      </div>
+      <ul className="list-unstyled components">
+        {navItems.map((item) => (
+          <li key={item.path} className={location.pathname === item.path ? 'active' : ''}>
+            <Link to={item.path}>
+              {item.icon}
+              <span>{item.label}</span>
+            </Link>
+          </li>
+        ))}
+      </ul>
+    </nav>
+  );
+};
+
+export default Sidebar;

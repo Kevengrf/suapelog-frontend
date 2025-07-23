@@ -1,0 +1,82 @@
+
+:root {
+  --primary-green: #004d40;
+  --light-green: #00796b;
+  --accent-green: #4db6ac;
+  --text-light: #f5f5f5;
+  --text-dark: #212529;
+}
+
+.sidebar {
+  width: 250px;
+  background: var(--primary-green);
+  color: var(--text-light);
+  height: 100vh;
+  position: fixed;
+  top: 0;
+  left: -250px; /* Escondido por padrão no mobile */
+  z-index: 1030;
+  box-shadow: 2px 0 5px rgba(0,0,0,0.1);
+  transition: left 0.3s ease-in-out;
+}
+
+/* Mostra a sidebar em telas grandes */
+@media (min-width: 992px) {
+  .sidebar {
+    left: 0;
+  }
+}
+
+/* Estilo para quando a sidebar está aberta no mobile */
+.sidebar-open .sidebar {
+  left: 0;
+}
+
+.sidebar .sidebar-header {
+  padding: 20px;
+  background: #00382e;
+  text-align: center;
+}
+
+.sidebar .sidebar-header h3 {
+  color: #fff;
+  margin: 0;
+  font-size: 1.8rem;
+  font-weight: 300;
+}
+
+.sidebar ul.components {
+  padding: 15px 0;
+}
+
+.sidebar ul li a {
+  padding: 15px 25px;
+  font-size: 1.1em;
+  display: flex;
+  align-items: center;
+  color: var(--text-light);
+  text-decoration: none;
+  transition: background 0.3s, color 0.3s;
+  font-weight: 300;
+}
+
+.sidebar ul li a:hover {
+  color: #fff;
+  background: var(--light-green);
+}
+
+.sidebar ul li.active > a, a[aria-expanded="true"] {
+  color: #fff;
+  background: var(--light-green);
+}
+
+.sidebar ul li a svg {
+  margin-right: 15px;
+  min-width: 20px;
+  font-size: 1.2em;
+  text-align: center;
+}
+
+.sidebar ul li a span {
+  flex-grow: 1;
+}
