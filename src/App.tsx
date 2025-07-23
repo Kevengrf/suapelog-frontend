@@ -13,7 +13,6 @@ function App() {
       <Routes>
         <Route element={<MainLayout />}>
           <Route path="/" element={<Navigate to="/admin" replace />} />
-          <Route path="/admin" element={<Admin />} />
           <Route path="/guarita" element={<Guarita />} />
           <Route path="/guarita-saida" element={<GuaritaSaida />} />
           <Route path="/motoristas" element={<Motoristas />} />
