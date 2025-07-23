@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import { FaTruck } from 'react-icons/fa';
 
@@ -7,12 +8,14 @@ interface TruckMapProps {
 
 const TruckMap: React.FC<TruckMapProps> = ({ status }) => {
   // Define as posições estáticas para cada ponto no mapa (em porcentagem)
-  const staticPositions = {
+  const staticPositions: Record<TruckMapProps['status'], number> = {
     'Triagem': 10,
     'Em Rota p/ PC1': 30, // Posição intermediária
     'PC1': 50,
     'Em Rota p/ Terminal': 70, // Posição intermediária
     'Terminal': 90,
+    'Saiu': 10, // Posição padrão para veículos que saíram (não visível)
+    'Pátio Público': 10, // Posição padrão para veículos no pátio público (não visível)
   };
 
   // Estado para gerenciar a posição atual animada do caminhão
@@ -20,11 +23,11 @@ const TruckMap: React.FC<TruckMapProps> = ({ status }) => {
 
   // Efeito para lidar com a animação do movimento do caminhão
   useEffect(() => {
-    let animationInterval: NodeJS.Timeout; // Usar NodeJS.Timeout para compatibilidade com setInterval
+    let animationInterval: number; // Corrigido para 'number'
     const step = 0.5; // Pontos percentuais para mover por intervalo
     const intervalTime = 50; // Milissegundos por passo
 
-    const targetPosition = staticPositions[status] || staticPositions['Triagem'];
+    const targetPosition = staticPositions[status];
 
     // Se o status for de rota, anima o caminhão
     if (status === 'Em Rota p/ PC1' || status === 'Em Rota p/ Terminal') {
@@ -96,8 +99,8 @@ const TruckMap: React.FC<TruckMapProps> = ({ status }) => {
         position: 'absolute',
         left: '10px',
         right: '10px',
-        height: '10px', // Mais grossa
-        backgroundColor: '#6c757d', // Cor da estrada mais escura
+        height: '10px',
+        backgroundColor: '#6c757d',
         borderRadius: '5px',
         zIndex: 0,
         border: '1px solid #495057',
@@ -142,9 +145,9 @@ const TruckMap: React.FC<TruckMapProps> = ({ status }) => {
           position: 'absolute',
           left: `${currentTruckPosition}%`,
           transform: 'translateX(-50%)',
-          transition: 'left 0.8s ease-in-out', // Transição mais suave
+          transition: 'left 0.8s ease-in-out',
           zIndex: 2,
-          fontSize: '36px', // Caminhão maior
+          fontSize: '36px',
           color: '#a0522d',
           filter: 'drop-shadow(2px 2px 2px rgba(0,0,0,0.3))',
         }}>
