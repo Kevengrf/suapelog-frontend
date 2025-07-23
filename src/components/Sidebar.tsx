@@ -8,11 +8,13 @@ const Sidebar = () => {
 
   const navItems = [
     { path: '/admin', icon: <FaTachometerAlt />, label: 'Dashboard' },
-    { path: '/admin/relatorios', icon: <FaChartBar />, label: 'Relatório BI' },
     { path: '/triagem-entrada', icon: <FaTruck />, label: 'Triagem: Entrada' },
     { path: '/triagem-saida', icon: <FaSignOutAlt />, label: 'Triagem: Saída' },
     { path: '/motoristas', icon: <FaUsers />, label: 'Motoristas' },
     { path: '/veiculos', icon: <FaIdCard />, label: 'Veículos' },
+    { path: '/admin/relatorios/permanencia', icon: <FaChartBar />, label: 'Relatório: Permanência' },
+    { path: '/admin/relatorios/percurso', icon: <FaChartBar />, label: 'Relatório: Percurso PC1-Terminal' },
+    { path: '/admin/relatorios/auditoria', icon: <FaChartBar />, label: 'Relatório: Auditoria' },
   ];
 
   return (

@@ -6,6 +6,8 @@ import Veiculos from "./pages/Veiculos";
 import RelatorioPermanencia from "./pages/RelatorioPermanencia";
 import TriagemEntrada from "./pages/TriagemEntrada";
 import TriagemSaida from "./pages/TriagemSaida";
+import RelatorioTempoPercurso from "./pages/RelatorioTempoPercurso";
+import RelatorioAuditoria from "./pages/RelatorioAuditoria";
 
 function App() {
   return (
@@ -18,7 +20,9 @@ function App() {
           <Route path="/triagem-saida" element={<TriagemSaida />} />
           <Route path="/motoristas" element={<Motoristas />} />
           <Route path="/veiculos" element={<Veiculos />} />
-          <Route path="/admin/relatorios" element={<RelatorioPermanencia />} />
+          <Route path="/admin/relatorios/permanencia" element={<RelatorioPermanencia />} />
+          <Route path="/admin/relatorios/percurso" element={<RelatorioTempoPercurso />} />
+          <Route path="/admin/relatorios/auditoria" element={<RelatorioAuditoria />} />
         </Route>
       </Routes>
     </Router>

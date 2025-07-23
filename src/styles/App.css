@@ -3,7 +3,7 @@
   --primary-green: #004d40;
   --light-green: #00796b;
   --accent-green: #4db6ac;
-  --background-light: #f7f9f9;
+  --background-light: #f0f2f5; /* Novo tom de cinza claro */
   --text-dark: #212529;
   --card-shadow: 0 4px 12px rgba(0,0,0,0.08);
 }
@@ -134,4 +134,17 @@ body {
     text-align: left;
     color: var(--primary-green);
   }
+}
+
+/* Estilos para o TruckMap no hover */
+.truck-map-container {
+  transition: transform 0.3s ease-in-out, box-shadow 0.3s ease-in-out;
+  position: relative; /* Necessário para z-index */
+  z-index: 1; /* Garante que ele não fique atrás de outros elementos */
+}
+
+.truck-map-container:hover {
+  transform: scale(4); /* Aumenta em 400% no hover */
+  box-shadow: 0 15px 30px rgba(0,0,0,0.3); /* Sombra maior */
+  z-index: 10000; /* Garante que ele fique acima de tudo */
 }

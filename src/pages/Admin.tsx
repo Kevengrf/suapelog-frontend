@@ -2,19 +2,46 @@ import { useState, useMemo, useEffect } from 'react';
 import * as XLSX from 'xlsx';
 import TimeCounter from '../components/TimeCounter';
 import { useAppContext } from '../context/AppContext';
+import TruckMap from '../components/TruckMap';
+import { differenceInMinutes } from 'date-fns';
 
 const Admin = () => {
-  const { accessLogs } = useAppContext();
+  const { accessLogs, markVehicleAtPC1, markVehicleAtTerminal, updateVehicleLocation, markVehicleExit } = useAppContext();
   const [filtroPlaca, setFiltroPlaca] = useState('');
   const [filtroStatus, setFiltroStatus] = useState('Todos');
   const [lastUpdated, setLastUpdated] = useState(new Date());
+  const [alerts, setAlerts] = useState<any[]>([]); // Novo estado para alertas
 
   useEffect(() => {
     const interval = setInterval(() => {
       setLastUpdated(new Date());
-    }, 1000); // Update every second
+
+      // Lógica de alertas
+      const newAlerts: any[] = [];
+      accessLogs.forEach(log => {
+        if (!log.exitTimestamp) { // Apenas veículos que ainda estão no pátio
+          let timeInCurrentStage = 0;
+          let alertMessage = '';
+
+          if (log.location === 'Em Rota p/ PC1' && log.entryTimestamp) {
+            timeInCurrentStage = differenceInMinutes(new Date(), new Date(log.entryTimestamp));
+            alertMessage = `Veículo ${log.plate} está em rota para PC1 há ${timeInCurrentStage} minutos.`;
+          } else if (log.location === 'Em Rota p/ Terminal' && log.pc1Timestamp) {
+            timeInCurrentStage = differenceInMinutes(new Date(), new Date(log.pc1Timestamp));
+            alertMessage = `Veículo ${log.plate} está em rota para Terminal há ${timeInCurrentStage} minutos.`;
+          }
+
+          // Define um limite de tempo para alerta (ex: 5 minutos)
+          if (timeInCurrentStage > 5) {
+            newAlerts.push({ id: log.id, message: alertMessage, type: 'warning' });
+          }
+        }
+      });
+      setAlerts(newAlerts);
+
+    }, 10000); // Verifica alertas a cada 10 segundos
     return () => clearInterval(interval);
-  }, []);
+  }, [accessLogs]);
 
   const veiculosNoPatio = useMemo(() => accessLogs.filter(log => !log.exitTimestamp).length, [accessLogs]);
   const totalSaidasHoje = useMemo(() => 
@@ -46,6 +73,8 @@ const Admin = () => {
       Entrada: new Date(log.entryTimestamp).toLocaleString(),
       Saida: log.exitTimestamp ? new Date(log.exitTimestamp).toLocaleString() : 'No Pátio',
       Status: log.exitTimestamp ? 'Saiu' : 'No Pátio',
+      Localizacao: log.location,
+      TipoVeiculo: log.vehicleType,
     }));
     const worksheet = XLSX.utils.json_to_sheet(dataToExport);
     const workbook = XLSX.utils.book_new();
@@ -56,6 +85,18 @@ const Admin = () => {
   return (
     <div className="admin-dashboard">
       <h1 className="h2 mb-4 dashboard-title">Dashboard de Monitoramento</h1>
+
+      {/* Painel de Alertas */}
+      {alerts.length > 0 && (
+        <div className="alert alert-danger mb-4">
+          <h4 className="alert-heading">Alertas Urgentes!</h4>
+          <ul className="mb-0">
+            {alerts.map(alert => (
+              <li key={alert.id}>{alert.message}</li>
+            ))}
+          </ul>
+        </div>
+      )}
 
       <div className="row g-4 mb-4">
         <div className="col-md-4">
@@ -120,11 +161,13 @@ const Admin = () => {
                 <tr>
                   <th>Placa</th>
                   <th>Motorista</th>
-                  <th>Documento</th>
-                  <th>Destino</th>
+                  <th>Tipo</th>
+                  <th>Localização</th>
                   <th>Entrada</th>
                   <th>Saída</th>
                   <th>Status / Tempo no Pátio</th>
+                  <th>Mapa</th>
+                  <th>Ações</th>
                 </tr>
               </thead>
               <tbody>
@@ -132,8 +175,8 @@ const Admin = () => {
                   <tr key={log.id}>
                     <td data-label="Placa"><span className="fw-bold">{log.plate}</span></td>
                     <td data-label="Motorista">{log.driverName}</td>
-                    <td data-label="Documento">{log.document}</td>
-                    <td data-label="Destino">{log.destination}</td>
+                    <td data-label="Tipo">{log.vehicleType}</td>
+                    <td data-label="Localização">{log.location}</td>
                     <td data-label="Entrada">{new Date(log.entryTimestamp).toLocaleString()}</td>
                     <td data-label="Saída">{log.exitTimestamp ? new Date(log.exitTimestamp).toLocaleString() : '-'}</td>
                     <td data-label="Status / Tempo">
@@ -141,6 +184,32 @@ const Admin = () => {
                         <TimeCounter startTime={log.entryTimestamp} />
                       ) : (
                         <span className="badge bg-secondary fs-6">Saiu</span>
+                      )}
+                    </td>
+                    <td data-label="Mapa">
+                      {log.location && log.location !== 'Saiu' && log.location !== 'Pátio Público' && (
+                        <TruckMap status={log.location} />
+                      )}
+                    </td>
+                    <td data-label="Ações">
+                      {!log.exitTimestamp && log.location !== 'Saiu' && log.location !== 'Pátio Público' && (
+                        <div className="d-flex flex-column gap-2">
+                          {log.location === 'Triagem' && (
+                            <button className="btn btn-sm btn-outline-primary" onClick={() => updateVehicleLocation(log.id, 'Em Rota p/ PC1')}>Rota p/ PC1</button>
+                          )}
+                          {log.location === 'Em Rota p/ PC1' && (
+                            <button className="btn btn-sm btn-primary" onClick={() => markVehicleAtPC1(log.id)}>Chegou PC1</button>
+                          )}
+                          {log.location === 'PC1' && (
+                            <button className="btn btn-sm btn-outline-primary" onClick={() => updateVehicleLocation(log.id, 'Em Rota p/ Terminal')}>Rota p/ Terminal</button>
+                          )}
+                          {log.location === 'Em Rota p/ Terminal' && (
+                            <button className="btn btn-sm btn-primary" onClick={() => markVehicleAtTerminal(log.id)}>Chegou Terminal</button>
+                          )}
+                          {log.location === 'Terminal' && (
+                            <button className="btn btn-sm btn-danger" onClick={() => markVehicleExit(log.id)}>Registrar Saída</button>
+                          )}
+                        </div>
                       )}
                     </td>
                   </tr>
@@ -155,3 +224,4 @@ const Admin = () => {
 };
 
 export default Admin;
+
