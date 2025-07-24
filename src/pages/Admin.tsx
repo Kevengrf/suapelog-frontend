@@ -3,23 +3,34 @@ import * as XLSX from 'xlsx';
 import TimeCounter from '../components/TimeCounter';
 import { useAppContext } from '../context/AppContext';
 import TruckMap from '../components/TruckMap';
-import { differenceInMinutes } from 'date-fns';
+import { differenceInMinutes, format, isPast } from 'date-fns';
 
 const Admin = () => {
-  const { accessLogs, markVehicleAtPC1, markVehicleAtTerminal, updateVehicleLocation, markVehicleExit } = useAppContext();
+  const { 
+    accessLogs, 
+    markVehicleAtPC1, 
+    updateVehicleLocation, 
+    markVehicleExit,
+    markVehiclePatioEntry,
+    markVehiclePatioExit,
+    markVehiclePC1Entry,
+    markVehiclePC1Exit,
+    updatePegasusLink,
+    updateSpeedAverage
+  } = useAppContext();
   const [filtroPlaca, setFiltroPlaca] = useState('');
   const [filtroStatus, setFiltroStatus] = useState('Todos');
   const [lastUpdated, setLastUpdated] = useState(new Date());
-  const [alerts, setAlerts] = useState<any[]>([]); // Novo estado para alertas
+  const [alerts, setAlerts] = useState<any[]>([]); 
 
   useEffect(() => {
     const interval = setInterval(() => {
       setLastUpdated(new Date());
 
-      // Lógica de alertas
       const newAlerts: any[] = [];
       accessLogs.forEach(log => {
-        if (!log.exitTimestamp) { // Apenas veículos que ainda estão no pátio
+        if (!log.exitTimestamp) { 
+          // Alertas de tempo em rota
           let timeInCurrentStage = 0;
           let alertMessage = '';
 
@@ -31,15 +42,30 @@ const Admin = () => {
             alertMessage = `Veículo ${log.plate} está em rota para Terminal há ${timeInCurrentStage} minutos.`;
           }
 
-          // Define um limite de tempo para alerta (ex: 5 minutos)
           if (timeInCurrentStage > 5) {
-            newAlerts.push({ id: log.id, message: alertMessage, type: 'warning' });
+            newAlerts.push({ id: log.id + '-time', message: alertMessage, type: 'warning' });
+          }
+
+          // Alerta de janela de agendamento
+          if (log.appointmentWindowStart && log.appointmentWindowEnd) {
+            const now = new Date();
+            const windowStart = new Date(log.appointmentWindowStart);
+            const windowEnd = new Date(log.appointmentWindowEnd);
+
+            if (isPast(windowEnd) && log.location === 'Triagem') {
+              newAlerts.push({ id: log.id + '-window', message: `Veículo ${log.plate} está fora da janela de agendamento.`, type: 'danger' });
+            }
+          }
+
+          // Alerta de velocidade média baixa (simulado)
+          if (log.speedAverage && log.speedAverage < 30 && (log.location === 'Em Rota p/ PC1' || log.location === 'Em Rota p/ Terminal')) {
+            newAlerts.push({ id: log.id + '-speed', message: `Veículo ${log.plate} com velocidade média baixa (${log.speedAverage} km/h).`, type: 'warning' });
           }
         }
       });
       setAlerts(newAlerts);
 
-    }, 10000); // Verifica alertas a cada 10 segundos
+    }, 10000); 
     return () => clearInterval(interval);
   }, [accessLogs]);
 
@@ -67,14 +93,19 @@ const Admin = () => {
   const handleExportExcel = () => {
     const dataToExport = registrosFiltrados.map(log => ({
       Placa: log.plate,
-      Motorista: log.driverName,
-      Documento: log.document,
-      Destino: log.destination,
       Entrada: new Date(log.entryTimestamp).toLocaleString(),
       Saida: log.exitTimestamp ? new Date(log.exitTimestamp).toLocaleString() : 'No Pátio',
       Status: log.exitTimestamp ? 'Saiu' : 'No Pátio',
       Localizacao: log.location,
       TipoVeiculo: log.vehicleType,
+      Agendamento: log.appointmentTime ? format(new Date(log.appointmentTime), 'dd/MM HH:mm') : 'N/A',
+      JanelaAgendamento: log.appointmentWindowStart && log.appointmentWindowEnd ? `${format(new Date(log.appointmentWindowStart), 'HH:mm')} - ${format(new Date(log.appointmentWindowEnd), 'HH:mm')}` : 'N/A',
+      Pegasus: log.pegasusLinkedData ? 'Sim' : 'Não',
+      VelocidadeMedia: log.speedAverage ? `${log.speedAverage} km/h` : 'N/A',
+      PatioEntrada: log.patioEntryTimestamp ? new Date(log.patioEntryTimestamp).toLocaleString() : '-',
+      PatioSaida: log.patioExitTimestamp ? new Date(log.patioExitTimestamp).toLocaleString() : '-',
+      PC1Entrada: log.pc1EntryTimestamp ? new Date(log.pc1EntryTimestamp).toLocaleString() : '-',
+      PC1Saida: log.pc1ExitTimestamp ? new Date(log.pc1ExitTimestamp).toLocaleString() : '-',
     }));
     const worksheet = XLSX.utils.json_to_sheet(dataToExport);
     const workbook = XLSX.utils.book_new();
@@ -160,9 +191,12 @@ const Admin = () => {
               <thead className="table-light">
                 <tr>
                   <th>Placa</th>
-                  <th>Motorista</th>
                   <th>Tipo</th>
                   <th>Localização</th>
+                  <th>Agendamento</th>
+                  <th>Janela Agendamento</th>
+                  <th>Pegasus</th>
+                  <th>Velocidade Média</th>
                   <th>Entrada</th>
                   <th>Saída</th>
                   <th>Status / Tempo no Pátio</th>
@@ -174,9 +208,12 @@ const Admin = () => {
                 {registrosFiltrados.map(log => (
                   <tr key={log.id}>
                     <td data-label="Placa"><span className="fw-bold">{log.plate}</span></td>
-                    <td data-label="Motorista">{log.driverName}</td>
                     <td data-label="Tipo">{log.vehicleType}</td>
                     <td data-label="Localização">{log.location}</td>
+                    <td data-label="Agendamento">{log.appointmentTime ? format(new Date(log.appointmentTime), 'dd/MM HH:mm') : 'N/A'}</td>
+                    <td data-label="Janela Agendamento">{log.appointmentWindowStart && log.appointmentWindowEnd ? `${format(new Date(log.appointmentWindowStart), 'HH:mm')} - ${format(new Date(log.appointmentWindowEnd), 'HH:mm')}` : 'N/A'}</td>
+                    <td data-label="Pegasus"><span className={`badge ${log.pegasusLinkedData ? 'bg-success' : 'bg-danger'}`}>{log.pegasusLinkedData ? 'Sim' : 'Não'}</span></td>
+                    <td data-label="Velocidade Média">{log.speedAverage ? `${log.speedAverage} km/h` : 'N/A'}</td>
                     <td data-label="Entrada">{new Date(log.entryTimestamp).toLocaleString()}</td>
                     <td data-label="Saída">{log.exitTimestamp ? new Date(log.exitTimestamp).toLocaleString() : '-'}</td>
                     <td data-label="Status / Tempo">
@@ -198,15 +235,12 @@ const Admin = () => {
                             <button className="btn btn-sm btn-outline-primary" onClick={() => updateVehicleLocation(log.id, 'Em Rota p/ PC1')}>Rota p/ PC1</button>
                           )}
                           {log.location === 'Em Rota p/ PC1' && (
-                            <button className="btn btn-sm btn-primary" onClick={() => markVehicleAtPC1(log.id)}>Chegou PC1</button>
+                            <button className="btn btn-sm btn-primary" onClick={() => markVehiclePC1Entry(log.id)}>Chegou PC1</button>
                           )}
                           {log.location === 'PC1' && (
                             <button className="btn btn-sm btn-outline-primary" onClick={() => updateVehicleLocation(log.id, 'Em Rota p/ Terminal')}>Rota p/ Terminal</button>
                           )}
                           {log.location === 'Em Rota p/ Terminal' && (
-                            <button className="btn btn-sm btn-primary" onClick={() => markVehicleAtTerminal(log.id)}>Chegou Terminal</button>
-                          )}
-                          {log.location === 'Terminal' && (
                             <button className="btn btn-sm btn-danger" onClick={() => markVehicleExit(log.id)}>Registrar Saída</button>
                           )}
                         </div>
@@ -224,4 +258,3 @@ const Admin = () => {
 };
 
 export default Admin;
-

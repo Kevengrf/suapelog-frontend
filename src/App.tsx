@@ -8,6 +8,8 @@ import TriagemEntrada from "./pages/TriagemEntrada";
 import TriagemSaida from "./pages/TriagemSaida";
 import RelatorioTempoPercurso from "./pages/RelatorioTempoPercurso";
 import RelatorioAuditoria from "./pages/RelatorioAuditoria";
+import RelatorioTempoPatioPC1 from "./pages/RelatorioTempoPatioPC1";
+import RelatorioHistoricoDetalhado from "./pages/RelatorioHistoricoDetalhado";
 
 function App() {
   return (
@@ -22,6 +24,8 @@ function App() {
           <Route path="/veiculos" element={<Veiculos />} />
           <Route path="/admin/relatorios/permanencia" element={<RelatorioPermanencia />} />
           <Route path="/admin/relatorios/percurso" element={<RelatorioTempoPercurso />} />
+          <Route path="/admin/relatorios/patio-pc1" element={<RelatorioTempoPatioPC1 />} />
+          <Route path="/admin/relatorios/historico-detalhado" element={<RelatorioHistoricoDetalhado />} />
           <Route path="/admin/relatorios/auditoria" element={<RelatorioAuditoria />} />
         </Route>
       </Routes>

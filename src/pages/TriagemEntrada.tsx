@@ -1,7 +1,6 @@
-
 import { useState, useEffect } from 'react';
 import { useAppContext } from '../context/AppContext';
-import { formatDocument } from '../utils/formatters';
+import { isWithinInterval } from 'date-fns';
 
 // Função para gerar uma placa aleatória
 const gerarPlacaAleatoria = () => {
@@ -15,60 +14,63 @@ const gerarPlacaAleatoria = () => {
 };
 
 const TriagemEntrada = () => {
-  const { drivers, addAccessLog } = useAppContext();
+  const { addAccessLog, accessLogs } = useAppContext(); // Adicionado accessLogs para simular lookup
   const [placa, setPlaca] = useState(gerarPlacaAleatoria());
-  const [documento, setDocumento] = useState('');
-  const [driverName, setDriverName] = useState('');
-  const [destination, setDestination] = useState('');
-  const [vehicleType, setVehicleType] = useState<'Normal' | 'Cegonha' | 'Serviço'>('Normal'); // Novo estado
+  const [vehicleType, setVehicleType] = useState<'Normal' | 'Cegonha' | 'Serviço'>('Normal');
   const [isAgendado, setIsAgendado] = useState<boolean | null>(null);
+  const [appointmentTime, setAppointmentTime] = useState<Date | null>(null);
+  const [appointmentWindowStart, setAppointmentWindowStart] = useState<Date | null>(null);
+  const [appointmentWindowEnd, setAppointmentWindowEnd] = useState<Date | null>(null);
 
   const isServico = vehicleType === 'Serviço';
 
   useEffect(() => {
-    if (isServico) {
-      setDriverName('Veículo de Serviço');
-      setDestination('Acesso Livre');
-      setDocumento('N/A');
+    // Simula a busca de agendamento por placa (como se viesse do Pegasus)
+    const foundLog = accessLogs.find(log => log.plate === placa && log.appointmentTime);
+    if (foundLog && foundLog.appointmentTime && foundLog.appointmentWindowStart && foundLog.appointmentWindowEnd) {
+      setAppointmentTime(new Date(foundLog.appointmentTime));
+      setAppointmentWindowStart(new Date(foundLog.appointmentWindowStart));
+      setAppointmentWindowEnd(new Date(foundLog.appointmentWindowEnd));
     } else {
-      const foundDriver = drivers.find(d => d.document === documento);
-      if (foundDriver) {
-        setDriverName(foundDriver.name);
-        setDestination(vehicleType === 'Cegonha' ? 'Pátio Público' : 'Triagem'); // Destino inicial é Triagem
-      } else {
-        setDriverName('');
-        setDestination('');
-      }
+      setAppointmentTime(null);
+      setAppointmentWindowStart(null);
+      setAppointmentWindowEnd(null);
     }
-  }, [documento, drivers, vehicleType, isServico]);
+  }, [placa, accessLogs]);
 
   const handleNovaLeitura = () => {
     setPlaca(gerarPlacaAleatoria());
-    setDocumento('');
-    setDriverName('');
-    setDestination('');
     setVehicleType('Normal');
     setIsAgendado(null);
+    setAppointmentTime(null);
+    setAppointmentWindowStart(null);
+    setAppointmentWindowEnd(null);
   };
 
   const handleVerificarAgendamento = () => {
-    // Simula a verificação de token
-    setIsAgendado(Math.random() > 0.3); // 70% de chance de estar agendado
+    if (appointmentTime && appointmentWindowStart && appointmentWindowEnd) {
+      const currentTime = new Date();
+      const withinWindow = isWithinInterval(currentTime, {
+        start: appointmentWindowStart,
+        end: appointmentWindowEnd,
+      });
+      setIsAgendado(withinWindow);
+    } else {
+      setIsAgendado(false); // No appointment data found
+    }
   };
 
   const handleRegistroEntrada = () => {
-    if (!isServico && (!documento || !driverName)) {
-      alert('Por favor, preencha todos os campos necessários.');
-      return;
-    }
-
     const newAccessLog = {
       plate: placa,
-      document: documento,
-      driverName: driverName,
-      destination: destination,
       vehicleType: vehicleType,
-      location: (vehicleType === 'Cegonha' ? 'Pátio Público' : 'Triagem') as 'Triagem' | 'Pátio Público', // Explicitamente o tipo literal
+      location: (vehicleType === 'Cegonha' ? 'Pátio Público' : 'Triagem') as 'Triagem' | 'Pátio Público',
+      appointmentTime: appointmentTime?.toISOString(),
+      appointmentWindowStart: appointmentWindowStart?.toISOString(),
+      appointmentWindowEnd: appointmentWindowEnd?.toISOString(),
+      patioEntryTimestamp: new Date().toISOString(), // Mark patio entry at triagem
+      pegasusLinkedData: Math.random() > 0.2, // Simulate Pegasus linkage
+      speedAverage: Math.floor(Math.random() * 60) + 20, // Simulate speed
     };
     addAccessLog(newAccessLog);
     alert(`Entrada registrada para ${placa} (${vehicleType}).`);
@@ -94,7 +96,7 @@ const TriagemEntrada = () => {
               id="vehicleType" 
               className="form-select form-select-lg" 
               value={vehicleType} 
-              onChange={e => setVehicleType(e.target.value as 'Normal' | 'Cegonha' | 'Serviço')} // Cast para o tipo correto
+              onChange={e => setVehicleType(e.target.value as 'Normal' | 'Cegonha' | 'Serviço')}
             >
               <option value="Normal">Normal</option>
               <option value="Cegonha">Caminhão Cegonha</option>
@@ -104,22 +106,12 @@ const TriagemEntrada = () => {
 
           {!isServico && (
             <>
-              <div className="mb-3">
-                <label htmlFor="documento" className="form-label fs-5">Documento do Motorista</label>
-                <input 
-                  type="text" 
-                  className="form-control form-control-lg text-center" 
-                  id="documento" 
-                  value={documento} 
-                  onChange={e => setDocumento(formatDocument(e.target.value))} 
-                  placeholder="Insira o CPF ou CNH"
-                />
-              </div>
-
-              {driverName && (
+              {appointmentTime && (
                 <div className="text-center p-2 rounded mb-3" style={{backgroundColor: '#f0f0f0'}}>
-                  <p className="mb-1">Motorista: <span className="fw-bold">{driverName}</span></p>
-                  <p className="mb-0">Destino: <span className="fw-bold">{destination}</span></p>
+                  <p className="mb-0">Agendamento: <span className="fw-bold">{appointmentTime.toLocaleString()}</span></p>
+                  {appointmentWindowStart && appointmentWindowEnd && (
+                    <p className="mb-0">Janela: <span className="fw-bold">{appointmentWindowStart.toLocaleTimeString()} - {appointmentWindowEnd.toLocaleTimeString()}</span></p>
+                  )}
                 </div>
               )}
 
@@ -129,7 +121,7 @@ const TriagemEntrada = () => {
 
               {isAgendado !== null && (
                 <div className={`alert ${isAgendado ? 'alert-success' : 'alert-warning'}`}>
-                  {isAgendado ? 'Veículo com agendamento confirmado!' : 'Veículo sem agendamento prévio.'}
+                  {isAgendado ? 'Veículo com agendamento confirmado e dentro da janela!' : 'Veículo sem agendamento ou fora da janela.'}
                 </div>
               )}
             </>
@@ -140,7 +132,7 @@ const TriagemEntrada = () => {
           )}
 
           <div className="d-grid mt-4">
-            <button type="button" className="btn btn-primary btn-lg" onClick={handleRegistroEntrada} disabled={!driverName}>
+            <button type="button" className="btn btn-primary btn-lg" onClick={handleRegistroEntrada}>
               Confirmar Entrada
             </button>
           </div>
