@@ -126,7 +126,7 @@ const Admin = () => {
         <div className="col">
           <div className="card dashboard-card bg-primary text-white h-100">
             <div className="card-body d-flex flex-column justify-content-between">
-              <h5 className="card-title">Veículos no Pátio</h5>
+              <h5 className="card-title">Veículos no Complexo</h5>
               <p className="card-text display-4">{veiculosNoPatio}</p>
             </div>
           </div>
