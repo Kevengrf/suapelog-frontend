@@ -1,0 +1,67 @@
+
+.placa {
+  width: 200px; /* Tamanho ajustado para caber na tabela/card */
+  height: auto;
+  aspect-ratio: 380 / 125; /* Proporção mantida */
+  background-color: white;
+  border: 2px solid black;
+  border-radius: 8px;
+  position: relative;
+  font-family: 'Courier New', Courier, monospace; /* Fonte monoespaçada para melhor visual */
+  box-shadow: 2px 2px 6px rgba(0,0,0,0.2);
+  overflow: hidden;
+  display: inline-block; /* Para alinhar corretamente */
+  vertical-align: middle;
+}
+
+.placa .topo {
+  background-color: #003399;
+  color: white;
+  text-align: center;
+  padding: 1px 0;
+  font-size: 0.8em;
+  font-weight: bold;
+  letter-spacing: 1px;
+}
+
+.placa .bandeira {
+  position: absolute;
+  top: 2px;
+  right: 5px;
+  width: 25px;
+}
+
+.placa .qr {
+  position: absolute;
+  top: 25%;
+  left: 5px;
+  width: 15px;
+  height: 15px;
+  background-color: #ccc; /* simulação do QR */
+}
+
+.placa .mercosul {
+  position: absolute;
+  top: 3px;
+  left: 15px;
+  font-size: 0.5em;
+  color: white;
+}
+
+.placa .br {
+  position: absolute;
+  bottom: 2px;
+  left: 5px;
+  font-size: 0.8em;
+  font-weight: bold;
+}
+
+.placa .codigo {
+  font-size: 1.8em;
+  font-weight: bold;
+  letter-spacing: 2px;
+  color: black;
+  text-align: center;
+  padding: 10px 0;
+  width: 100%;
+}

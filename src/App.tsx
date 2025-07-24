@@ -10,6 +10,7 @@ import RelatorioTempoPercurso from "./pages/RelatorioTempoPercurso";
 import RelatorioAuditoria from "./pages/RelatorioAuditoria";
 import RelatorioTempoPatioPC1 from "./pages/RelatorioTempoPatioPC1";
 import RelatorioHistoricoDetalhado from "./pages/RelatorioHistoricoDetalhado";
+import EspCamViewer from "./pages/EspCamViewer";
 
 function App() {
   return (
@@ -27,6 +28,7 @@ function App() {
           <Route path="/admin/relatorios/patio-pc1" element={<RelatorioTempoPatioPC1 />} />
           <Route path="/admin/relatorios/historico-detalhado" element={<RelatorioHistoricoDetalhado />} />
           <Route path="/admin/relatorios/auditoria" element={<RelatorioAuditoria />} />
+          <Route path="/esp-cam-viewer" element={<EspCamViewer />} />
         </Route>
       </Routes>
     </Router>

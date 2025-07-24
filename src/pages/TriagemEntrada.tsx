@@ -63,6 +63,9 @@ const TriagemEntrada = () => {
   const handleRegistroEntrada = () => {
     const newAccessLog = {
       plate: placa,
+      document: 'N/A',
+      driverName: 'N/A',
+      destination: 'N/A',
       vehicleType: vehicleType,
       location: (vehicleType === 'Cegonha' ? 'Pátio Público' : 'Triagem') as 'Triagem' | 'Pátio Público',
       appointmentTime: appointmentTime?.toISOString(),

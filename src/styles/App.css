@@ -98,53 +98,54 @@ body {
   transform: scale(1.05);
 }
 
-/* --- Tabela Responsiva --- */
+/* --- Tabela Responsiva em Cards --- */
 
-@media (max-width: 768px) {
-  .table-responsive .table {
-    display: block;
-    width: 100%;
-  }
-  .table thead {
-    display: none; /* Esconde o cabeçalho da tabela */
-  }
-  .table tbody, .table tr, .table td {
-    display: block;
-    width: 100%;
+.table-responsive .table {
+  display: block;
+  width: 100%;
+}
+.table thead {
+  display: none; /* Esconde o cabeçalho da tabela */
+}
+.table tbody, .table tr, .table td {
+  display: block;
+  width: 100%;
+}
+.table tr {
+  margin-bottom: 1rem;
+  border: 1px solid #ddd;
+  border-radius: 8px;
+  padding: 1rem;
+  background-color: #fff;
+  box-shadow: var(--card-shadow);
+}
+.table td {
+  padding-left: 50%;
+  position: relative;
+  text-align: right;
+  border: none;
+}
+.table td::before {
+  content: attr(data-label);
+  position: absolute;
+  left: 10px;
+  width: 45%;
+  padding-right: 10px;
+  font-weight: bold;
+  text-align: left;
+  color: var(--primary-green);
+}
+
+/* Grid para telas maiores */
+@media (min-width: 992px) {
+  .table tbody {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 1rem;
   }
   .table tr {
-    margin-bottom: 1rem;
-    border: 1px solid #ddd;
-    border-radius: 8px;
-    padding: 1rem;
-  }
-  .table td {
-    padding-left: 50%;
-    position: relative;
-    text-align: right;
-    border: none;
-  }
-  .table td::before {
-    content: attr(data-label);
-    position: absolute;
-    left: 10px;
-    width: 45%;
-    padding-right: 10px;
-    font-weight: bold;
-    text-align: left;
-    color: var(--primary-green);
+    margin-bottom: 0;
   }
 }
 
-/* Estilos para o TruckMap no hover */
-.truck-map-container {
-  transition: transform 0.3s ease-in-out, box-shadow 0.3s ease-in-out;
-  position: relative; /* Necessário para z-index */
-  z-index: 1; /* Garante que ele não fique atrás de outros elementos */
-}
 
-.truck-map-container:hover {
-  transform: scale(4); /* Aumenta em 400% no hover */
-  box-shadow: 0 15px 30px rgba(0,0,0,0.3); /* Sombra maior */
-  z-index: 10000; /* Garante que ele fique acima de tudo */
-}

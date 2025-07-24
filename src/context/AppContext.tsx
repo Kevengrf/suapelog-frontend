@@ -1,5 +1,5 @@
 import React, { createContext, useState, useContext, useEffect, type ReactNode } from 'react';
-import { generateRandomName, generateRandomCpf, generateRandomPlate } from '../utils/formatters';
+import { generateRandomPlate } from '../utils/formatters';
 
 interface Driver {
   id: string;
@@ -24,8 +24,10 @@ interface AccessLog {
   entryTimestamp: string;
   exitTimestamp?: string;
   vehicleType: 'Normal' | 'Cegonha' | 'Serviço';
-  location: 'Triagem' | 'Em Rota p/ PC1' | 'PC1' | 'Em Rota p/ Terminal' | 'Saiu' | 'Pátio Público';
+  location: 'Triagem' | 'Em Rota p/ PC1' | 'PC1' | 'Em Rota p/ Terminal' | 'No Terminal' | 'Em Rota p/ Saída' | 'Saiu' | 'Pátio Público';
   pc1Timestamp?: string;
+  terminalEntryTimestamp?: string; // Time entered terminal
+  terminalExitTimestamp?: string; // Time exited terminal
   // New fields for the hackathon journey
   appointmentTime?: string; // Scheduled arrival time
   appointmentWindowStart?: string; // Start of appointment window
@@ -215,9 +217,9 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
       setAccessLogs(prevLogs => [...prevLogs, {
         id: String(prevLogs.length + 1),
         plate: randomPlate,
-        // Removed: document: randomCpf,
-        // Removed: driverName: randomName,
-        // Removed: destination: randomDestination,
+        document: 'N/A',
+        driverName: 'N/A',
+        destination: 'N/A',
         entryTimestamp: new Date().toISOString(),
         vehicleType: randomVehicleType,
         location: initialLocation,
@@ -245,19 +247,24 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
         let newLog = { ...log };
 
         // Simulate movement through stages
-        if (newLog.location === 'Triagem' && Math.random() < 0.5) {
+        if (newLog.location === 'Triagem' && Math.random() < 0.4) { // Chance de 40%
           newLog.location = 'Em Rota p/ PC1';
-          newLog.patioEntryTimestamp = new Date().toISOString(); // Mark patio entry when leaving triagem
-        } else if (newLog.location === 'Em Rota p/ PC1' && Math.random() < 0.5) {
+          newLog.patioEntryTimestamp = new Date().toISOString();
+        } else if (newLog.location === 'Em Rota p/ PC1' && Math.random() < 0.4) { // Chance de 40%
           newLog.pc1EntryTimestamp = new Date().toISOString();
           newLog.location = 'PC1';
-          newLog.patioExitTimestamp = new Date().toISOString(); // Mark patio exit when entering PC1
-        } else if (newLog.location === 'PC1' && Math.random() < 0.5) {
+          newLog.patioExitTimestamp = new Date().toISOString();
+        } else if (newLog.location === 'PC1' && Math.random() < 0.4) { // Chance de 40%
           newLog.pc1ExitTimestamp = new Date().toISOString();
           newLog.location = 'Em Rota p/ Terminal';
-        } else if (newLog.location === 'Em Rota p/ Terminal' && Math.random() < 0.5) {
-          // No terminalEntryTimestamp, just move to Saiu or stay in Em Rota p/ Terminal
-          newLog.exitTimestamp = new Date().toISOString(); // Directly exit from Em Rota p/ Terminal
+        } else if (newLog.location === 'Em Rota p/ Terminal' && Math.random() < 0.4) { // Chance de 40%
+          newLog.terminalEntryTimestamp = new Date().toISOString();
+          newLog.location = 'No Terminal';
+        } else if (newLog.location === 'No Terminal' && Math.random() < 0.3) { // Chance de 30% (mais tempo no terminal)
+          newLog.terminalExitTimestamp = new Date().toISOString();
+          newLog.location = 'Em Rota p/ Saída';
+        } else if (newLog.location === 'Em Rota p/ Saída' && Math.random() < 0.2) { // Chance de 20% (mais tempo para sair)
+          newLog.exitTimestamp = new Date().toISOString();
           newLog.location = 'Saiu';
         }
         return newLog;

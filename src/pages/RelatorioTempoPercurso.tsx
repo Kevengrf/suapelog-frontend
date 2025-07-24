@@ -8,10 +8,10 @@ const RelatorioTempoPercurso: React.FC = () => {
   const { accessLogs } = useAppContext();
 
   const dadosRelatorio = useMemo(() => {
-    return accessLogs.filter(log => log.pc1Timestamp && log.terminalTimestamp)
+    return accessLogs.filter(log => log.pc1Timestamp && log.terminalExitTimestamp)
       .map(log => {
         const pc1Time = new Date(log.pc1Timestamp!);
-        const terminalTime = new Date(log.terminalTimestamp!);
+        const terminalTime = new Date(log.terminalExitTimestamp!);
         const durationMinutes = differenceInMinutes(terminalTime, pc1Time);
         const formattedDuration = formatDistanceStrict(pc1Time, terminalTime, { locale: ptBR, unit: 'minute' });
 

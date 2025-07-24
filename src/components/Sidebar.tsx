@@ -17,6 +17,7 @@ const Sidebar = () => {
     { path: '/admin/relatorios/patio-pc1', icon: <FaChartBar />, label: 'Relatório: Pátio-PC1' },
     { path: '/admin/relatorios/historico-detalhado', icon: <FaChartBar />, label: 'Relatório: Histórico Detalhado' },
     { path: '/admin/relatorios/auditoria', icon: <FaChartBar />, label: 'Relatório: Auditoria' },
+    { path: '/esp-cam-viewer', icon: <FaTruck />, label: 'ESP32-CAM Viewer' },
   ];
 
   return (

@@ -3,23 +3,24 @@ import React, { useState, useEffect } from 'react';
 import { FaTruck } from 'react-icons/fa';
 
 interface TruckMapProps {
-  status: 'Triagem' | 'Em Rota p/ PC1' | 'PC1' | 'Em Rota p/ Terminal' | 'Terminal' | 'Saiu' | 'Pátio Público';
+  status: 'Triagem' | 'Em Rota p/ PC1' | 'PC1' | 'Em Rota p/ Terminal' | 'No Terminal' | 'Em Rota p/ Saída' | 'Saiu' | 'Pátio Público';
 }
 
 const TruckMap: React.FC<TruckMapProps> = ({ status }) => {
   // Define as posições estáticas para cada ponto no mapa (em porcentagem)
   const staticPositions: Record<TruckMapProps['status'], number> = {
-    'Triagem': 10,
-    'Em Rota p/ PC1': 30, // Posição intermediária
-    'PC1': 50,
-    'Em Rota p/ Terminal': 70, // Posição intermediária
-    'Terminal': 90,
-    'Saiu': 10, // Posição padrão para veículos que saíram (não visível)
-    'Pátio Público': 10, // Posição padrão para veículos no pátio público (não visível)
+    'Triagem': 5,
+    'Em Rota p/ PC1': 20, // Posição intermediária
+    'PC1': 35,
+    'Em Rota p/ Terminal': 50, // Posição intermediária
+    'No Terminal': 65,
+    'Em Rota p/ Saída': 80, // Posição intermediária
+    'Saiu': 95, // Posição final (quase fora do mapa visível)
+    'Pátio Público': 5, // Posição padrão para veículos no pátio público (não visível)
   };
 
   // Estado para gerenciar a posição atual animada do caminhão
-  const [currentTruckPosition, setCurrentTruckPosition] = useState(staticPositions['Triagem']);
+  const [currentTruckPosition, setCurrentTruckPosition] = useState(staticPositions[status]);
 
   // Efeito para lidar com a animação do movimento do caminhão
   useEffect(() => {
@@ -30,9 +31,23 @@ const TruckMap: React.FC<TruckMapProps> = ({ status }) => {
     const targetPosition = staticPositions[status];
 
     // Se o status for de rota, anima o caminhão
-    if (status === 'Em Rota p/ PC1' || status === 'Em Rota p/ Terminal') {
-      const startPos = (status === 'Em Rota p/ PC1') ? staticPositions['Triagem'] : staticPositions['PC1'];
-      const endPos = (status === 'Em Rota p/ PC1') ? staticPositions['PC1'] : staticPositions['Terminal'];
+    if (status.startsWith('Em Rota')) {
+      let startPos: number;
+      let endPos: number;
+
+      if (status === 'Em Rota p/ PC1') {
+        startPos = staticPositions['Triagem'];
+        endPos = staticPositions['PC1'];
+      } else if (status === 'Em Rota p/ Terminal') {
+        startPos = staticPositions['PC1'];
+        endPos = staticPositions['No Terminal'];
+      } else if (status === 'Em Rota p/ Saída') {
+        startPos = staticPositions['No Terminal'];
+        endPos = staticPositions['Saiu'];
+      } else {
+        setCurrentTruckPosition(targetPosition);
+        return; // Não animar se o status não for de rota
+      }
 
       setCurrentTruckPosition(startPos); // Começa do início do segmento
       animationInterval = setInterval(() => {
@@ -73,26 +88,42 @@ const TruckMap: React.FC<TruckMapProps> = ({ status }) => {
       <div style={{
         position: 'absolute',
         left: '0%',
-        width: '33.33%',
+        width: '20%',
         height: '100%',
         backgroundColor: 'rgba(0, 123, 255, 0.1)',
         borderRight: '1px dashed rgba(0,0,0,0.1)',
       }} title="Zona Triagem"></div>
       <div style={{
         position: 'absolute',
-        left: '33.33%',
-        width: '33.33%',
+        left: '20%',
+        width: '20%',
         height: '100%',
         backgroundColor: 'rgba(255, 193, 7, 0.1)',
         borderRight: '1px dashed rgba(0,0,0,0.1)',
       }} title="Zona PC1"></div>
       <div style={{
         position: 'absolute',
-        left: '66.66%',
-        width: '33.34%',
+        left: '40%',
+        width: '20%',
         height: '100%',
         backgroundColor: 'rgba(40, 167, 69, 0.1)',
+        borderRight: '1px dashed rgba(0,0,0,0.1)',
       }} title="Zona Terminal"></div>
+      <div style={{
+        position: 'absolute',
+        left: '60%',
+        width: '20%',
+        height: '100%',
+        backgroundColor: 'rgba(108, 117, 125, 0.1)',
+        borderRight: '1px dashed rgba(0,0,0,0.1)',
+      }} title="Zona No Terminal"></div>
+      <div style={{
+        position: 'absolute',
+        left: '80%',
+        width: '20%',
+        height: '100%',
+        backgroundColor: 'rgba(220, 53, 69, 0.1)',
+      }} title="Zona Saída"></div>
 
       {/* Linha da Estrada */}
       <div style={{
@@ -109,7 +140,7 @@ const TruckMap: React.FC<TruckMapProps> = ({ status }) => {
       {/* Pontos de referência */}
       <div style={{
         position: 'absolute',
-        left: '10%',
+        left: '5%',
         width: '14px',
         height: '14px',
         borderRadius: '50%',
@@ -119,7 +150,7 @@ const TruckMap: React.FC<TruckMapProps> = ({ status }) => {
       }} title="Triagem"></div>
       <div style={{
         position: 'absolute',
-        left: '50%',
+        left: '35%',
         transform: 'translateX(-50%)',
         width: '14px',
         height: '14px',
@@ -130,7 +161,8 @@ const TruckMap: React.FC<TruckMapProps> = ({ status }) => {
       }} title="PC1"></div>
       <div style={{
         position: 'absolute',
-        left: '90%',
+        left: '65%',
+        transform: 'translateX(-50%)',
         width: '14px',
         height: '14px',
         borderRadius: '50%',
@@ -138,6 +170,17 @@ const TruckMap: React.FC<TruckMapProps> = ({ status }) => {
         zIndex: 1,
         boxShadow: '0 0 5px rgba(0,0,0,0.2)',
       }} title="Terminal"></div>
+      <div style={{
+        position: 'absolute',
+        left: '95%',
+        transform: 'translateX(-50%)',
+        width: '14px',
+        height: '14px',
+        borderRadius: '50%',
+        backgroundColor: '#dc3545',
+        zIndex: 1,
+        boxShadow: '0 0 5px rgba(0,0,0,0.2)',
+      }} title="Saída"></div>
 
       {/* Caminhão 2D */}
       {isVisible && (

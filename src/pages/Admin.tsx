@@ -3,20 +3,15 @@ import * as XLSX from 'xlsx';
 import TimeCounter from '../components/TimeCounter';
 import { useAppContext } from '../context/AppContext';
 import TruckMap from '../components/TruckMap';
+import PlacaMercosul from '../components/PlacaMercosul';
 import { differenceInMinutes, format, isPast } from 'date-fns';
 
 const Admin = () => {
   const { 
     accessLogs, 
-    markVehicleAtPC1, 
     updateVehicleLocation, 
     markVehicleExit,
-    markVehiclePatioEntry,
-    markVehiclePatioExit,
     markVehiclePC1Entry,
-    markVehiclePC1Exit,
-    updatePegasusLink,
-    updateSpeedAverage
   } = useAppContext();
   const [filtroPlaca, setFiltroPlaca] = useState('');
   const [filtroStatus, setFiltroStatus] = useState('Todos');
@@ -48,8 +43,6 @@ const Admin = () => {
 
           // Alerta de janela de agendamento
           if (log.appointmentWindowStart && log.appointmentWindowEnd) {
-            const now = new Date();
-            const windowStart = new Date(log.appointmentWindowStart);
             const windowEnd = new Date(log.appointmentWindowEnd);
 
             if (isPast(windowEnd) && log.location === 'Triagem') {
@@ -129,26 +122,26 @@ const Admin = () => {
         </div>
       )}
 
-      <div className="row g-4 mb-4">
-        <div className="col-md-4">
-          <div className="card dashboard-card bg-primary text-white">
-            <div className="card-body">
+      <div className="row row-cols-1 row-cols-md-3 g-4 mb-4">
+        <div className="col">
+          <div className="card dashboard-card bg-primary text-white h-100">
+            <div className="card-body d-flex flex-column justify-content-between">
               <h5 className="card-title">Veículos no Pátio</h5>
               <p className="card-text display-4">{veiculosNoPatio}</p>
             </div>
           </div>
         </div>
-        <div className="col-md-4">
-          <div className="card dashboard-card bg-success text-white">
-            <div className="card-body">
+        <div className="col">
+          <div className="card dashboard-card bg-success text-white h-100">
+            <div className="card-body d-flex flex-column justify-content-between">
               <h5 className="card-title">Total de Entradas Hoje</h5>
               <p className="card-text display-4">{totalEntradasHoje}</p>
             </div>
           </div>
         </div>
-        <div className="col-md-4">
-          <div className="card dashboard-card bg-info text-white">
-            <div className="card-body">
+        <div className="col">
+          <div className="card dashboard-card bg-info text-white h-100">
+            <div className="card-body d-flex flex-column justify-content-between">
               <h5 className="card-title">Total de Saídas Hoje</h5>
               <p className="card-text display-4">{totalSaidasHoje}</p>
             </div>
@@ -200,6 +193,8 @@ const Admin = () => {
                   <th>Entrada</th>
                   <th>Saída</th>
                   <th>Status / Tempo no Pátio</th>
+                  <th>Tempo Triagem &#8594; PC1</th>
+                  <th>Tempo PC1 &#8594; Saída</th>
                   <th>Mapa</th>
                   <th>Ações</th>
                 </tr>
@@ -207,7 +202,7 @@ const Admin = () => {
               <tbody>
                 {registrosFiltrados.map(log => (
                   <tr key={log.id}>
-                    <td data-label="Placa"><span className="fw-bold">{log.plate}</span></td>
+                    <td data-label="Placa"><PlacaMercosul placa={log.plate} /></td>
                     <td data-label="Tipo">{log.vehicleType}</td>
                     <td data-label="Localização">{log.location}</td>
                     <td data-label="Agendamento">{log.appointmentTime ? format(new Date(log.appointmentTime), 'dd/MM HH:mm') : 'N/A'}</td>
@@ -222,6 +217,16 @@ const Admin = () => {
                       ) : (
                         <span className="badge bg-secondary fs-6">Saiu</span>
                       )}
+                    </td>
+                    <td data-label="Tempo Triagem &#8594; PC1">
+                      {log.entryTimestamp && log.pc1EntryTimestamp
+                        ? `${differenceInMinutes(new Date(log.pc1EntryTimestamp), new Date(log.entryTimestamp))} min`
+                        : 'N/A'}
+                    </td>
+                    <td data-label="Tempo PC1 &#8594; Saída">
+                      {log.pc1EntryTimestamp && log.exitTimestamp
+                        ? `${differenceInMinutes(new Date(log.exitTimestamp), new Date(log.pc1EntryTimestamp))} min`
+                        : 'N/A'}
                     </td>
                     <td data-label="Mapa">
                       {log.location && log.location !== 'Saiu' && log.location !== 'Pátio Público' && (
